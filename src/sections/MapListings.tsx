@@ -91,7 +91,6 @@ const listings = [
 ];
 
 const ROATAN_CENTER = { lat: 16.318, lng: -86.5 };
-const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' };
 
 const areas = ['All areas', 'West End', 'West Bay', 'Sandy Bay', 'French Harbour', 'Pristine Bay'];
 const types = ['All types', 'House', 'Condo', 'Apartment', 'Commercial'];
@@ -203,7 +202,7 @@ const MapListings = () => {
             <div className="relative rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-auto lg:h-[600px] bg-[#e0f2fe]">
               {isLoaded ? (
                 <GoogleMap
-                  mapContainerStyle={MAP_CONTAINER_STYLE}
+                  mapContainerClassName="absolute inset-0 w-full h-full"
                   center={ROATAN_CENTER}
                   zoom={12}
                   onLoad={onMapLoad}

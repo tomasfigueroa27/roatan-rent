@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { MapPin, Bed, Bath, Square, X, Filter, List } from 'lucide-react';
+import { GoogleMap, useJsApiLoader, MarkerF, InfoWindowF } from '@react-google-maps/api';
 
-// Sample listings data with coordinates (approximate for Roatan)
+// Sample listings data with real Roatan coordinates
 const listings = [
   {
     id: 1,
@@ -13,8 +14,8 @@ const listings = [
     baths: 2,
     sqft: 1800,
     image: '/featured_home_exterior.jpg',
-    x: 25,
-    y: 65,
+    lat: 16.2902,
+    lng: -86.6148,
     featured: true,
   },
   {
@@ -27,8 +28,8 @@ const listings = [
     baths: 2,
     sqft: 950,
     image: '/property_condo_1.jpg',
-    x: 35,
-    y: 55,
+    lat: 16.3032,
+    lng: -86.5728,
     featured: false,
   },
   {
@@ -41,8 +42,8 @@ const listings = [
     baths: 1,
     sqft: 600,
     image: '/property_apartment_1.jpg',
-    x: 45,
-    y: 45,
+    lat: 16.3182,
+    lng: -86.5352,
     featured: false,
   },
   {
@@ -55,8 +56,8 @@ const listings = [
     baths: 1,
     sqft: 1200,
     image: '/featured_commercial_retail.jpg',
-    x: 70,
-    y: 35,
+    lat: 16.3442,
+    lng: -86.3992,
     featured: true,
   },
   {
@@ -69,8 +70,8 @@ const listings = [
     baths: 3,
     sqft: 2400,
     image: '/hero_living_room.jpg',
-    x: 55,
-    y: 25,
+    lat: 16.3522,
+    lng: -86.4622,
     featured: false,
   },
   {
@@ -83,22 +84,30 @@ const listings = [
     baths: 1,
     sqft: 1000,
     image: '/property_office_1.jpg',
-    x: 75,
-    y: 40,
+    lat: 16.3372,
+    lng: -86.3882,
     featured: false,
   },
 ];
+
+const ROATAN_CENTER = { lat: 16.318, lng: -86.5 };
+const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' };
 
 const areas = ['All areas', 'West End', 'West Bay', 'Sandy Bay', 'French Harbour', 'Pristine Bay'];
 const types = ['All types', 'House', 'Condo', 'Apartment', 'Commercial'];
 
 const MapListings = () => {
   const [selectedListing, setSelectedListing] = useState<number | null>(null);
-  const [hoveredListing, setHoveredListing] = useState<number | null>(null);
   const [filterArea, setFilterArea] = useState('All areas');
   const [filterType, setFilterType] = useState('All types');
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'split' | 'list'>('split');
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '',
+  });
+
+  const onMapLoad = useCallback(() => {}, []);
 
   const filteredListings = listings.filter((listing) => {
     const areaMatch = filterArea === 'All areas' || listing.area === filterArea;
@@ -191,99 +200,69 @@ const MapListings = () => {
         <div className={`grid gap-6 ${viewMode === 'split' ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
           {/* Map */}
           {viewMode === 'split' && (
-            <div className="relative bg-[#e0f2fe] rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-auto lg:h-[600px]">
-              {/* Stylized map of Roatan */}
-              <svg
-                viewBox="0 0 100 80"
-                className="absolute inset-0 w-full h-full"
-                preserveAspectRatio="xMidYMid slice"
-              >
-                {/* Ocean background */}
-                <rect width="100" height="80" fill="#e0f2fe" />
-                
-                {/* Main island shape (simplified Roatan) */}
-                <path
-                  d="M10,50 Q15,30 30,25 Q50,20 70,25 Q90,30 95,45 Q90,60 70,65 Q50,70 30,65 Q10,60 10,50 Z"
-                  fill="#86efac"
-                  stroke="#4ade80"
-                  strokeWidth="0.5"
-                />
-                
-                {/* Roads */}
-                <path
-                  d="M20,45 Q40,40 60,42 Q80,45 90,48"
-                  fill="none"
-                  stroke="#fbbf24"
-                  strokeWidth="1"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M35,30 Q40,45 45,60"
-                  fill="none"
-                  stroke="#fbbf24"
-                  strokeWidth="0.8"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M60,35 Q65,50 70,60"
-                  fill="none"
-                  stroke="#fbbf24"
-                  strokeWidth="0.8"
-                  strokeLinecap="round"
-                />
-
-                {/* Area labels */}
-                <text x="30" y="60" fontSize="3" fill="#166534" fontWeight="600">West Bay</text>
-                <text x="35" y="50" fontSize="3" fill="#166534" fontWeight="600">West End</text>
-                <text x="45" y="40" fontSize="3" fill="#166534" fontWeight="600">Sandy Bay</text>
-                <text x="70" y="35" fontSize="3" fill="#166534" fontWeight="600">French Harbour</text>
-                <text x="55" y="25" fontSize="3" fill="#166534" fontWeight="600">Pristine Bay</text>
-              </svg>
-
-              {/* Listing markers */}
-              {filteredListings.map((listing) => (
-                <button
-                  key={listing.id}
-                  onClick={() => setSelectedListing(listing.id)}
-                  onMouseEnter={() => setHoveredListing(listing.id)}
-                  onMouseLeave={() => setHoveredListing(null)}
-                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all ${
-                    selectedListing === listing.id ? 'z-20' : 'z-10'
-                  }`}
-                  style={{ left: `${listing.x}%`, top: `${listing.y}%` }}
+            <div className="relative rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-auto lg:h-[600px] bg-[#e0f2fe]">
+              {isLoaded ? (
+                <GoogleMap
+                  mapContainerStyle={MAP_CONTAINER_STYLE}
+                  center={ROATAN_CENTER}
+                  zoom={12}
+                  onLoad={onMapLoad}
+                  options={{
+                    disableDefaultUI: false,
+                    zoomControl: true,
+                    streetViewControl: false,
+                    mapTypeControl: false,
+                    fullscreenControl: false,
+                  }}
                 >
-                  <div
-                    className={`map-marker ${selectedListing === listing.id ? 'active' : ''} ${
-                      hoveredListing === listing.id ? 'scale-110' : ''
-                    }`}
-                  >
-                    {listing.type === 'Commercial' ? 'C' : listing.beds || 'R'}
-                  </div>
-                  
-                  {/* Tooltip */}
-                  {(hoveredListing === listing.id || selectedListing === listing.id) && (
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white rounded-lg shadow-lg p-3 text-left">
-                      <div className="text-xs text-gray-500 mb-1">{listing.area}</div>
-                      <div className="font-semibold text-gray-900 text-sm mb-1 line-clamp-1">
-                        {listing.title}
-                      </div>
-                      <div className="text-[#0ea5e9] font-semibold">
-                        {formatPrice(listing.price)}/mo
-                      </div>
-                    </div>
-                  )}
-                </button>
-              ))}
+                  {filteredListings.map((listing) => (
+                    <MarkerF
+                      key={listing.id}
+                      position={{ lat: listing.lat, lng: listing.lng }}
+                      onClick={() => setSelectedListing(listing.id === selectedListing ? null : listing.id)}
+                      icon={{
+                        path: google.maps.SymbolPath.CIRCLE,
+                        scale: 10,
+                        fillColor: listing.type === 'Commercial' ? '#ef4444' : '#0ea5e9',
+                        fillOpacity: 1,
+                        strokeColor: '#ffffff',
+                        strokeWeight: 2,
+                      }}
+                    >
+                      {selectedListing === listing.id && (
+                        <InfoWindowF
+                          position={{ lat: listing.lat, lng: listing.lng }}
+                          onCloseClick={() => setSelectedListing(null)}
+                        >
+                          <div className="w-44">
+                            <div className="text-xs text-gray-500 mb-0.5">{listing.area}</div>
+                            <div className="font-semibold text-gray-900 text-sm mb-1 leading-tight">
+                              {listing.title}
+                            </div>
+                            <div className="text-[#0ea5e9] font-semibold text-sm">
+                              {formatPrice(listing.price)}/mo
+                            </div>
+                          </div>
+                        </InfoWindowF>
+                      )}
+                    </MarkerF>
+                  ))}
+                </GoogleMap>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+                  Loading map…
+                </div>
+              )}
 
               {/* Map legend */}
-              <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-sm">
+              <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-sm z-10 pointer-events-none">
                 <div className="text-xs font-medium text-gray-700 mb-2">Legend</div>
                 <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <div className="w-4 h-4 bg-[#0ea5e9] rounded-full flex items-center justify-center text-white text-[8px]">R</div>
+                  <div className="w-4 h-4 bg-[#0ea5e9] rounded-full" />
                   <span>Residential</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
-                  <div className="w-4 h-4 bg-[#ef4444] rounded-full flex items-center justify-center text-white text-[8px]">C</div>
+                  <div className="w-4 h-4 bg-[#ef4444] rounded-full" />
                   <span>Commercial</span>
                 </div>
               </div>
@@ -299,8 +278,6 @@ const MapListings = () => {
                   selectedListing === listing.id ? 'ring-2 ring-[#0ea5e9]' : ''
                 }`}
                 onClick={() => setSelectedListing(listing.id)}
-                onMouseEnter={() => setHoveredListing(listing.id)}
-                onMouseLeave={() => setHoveredListing(null)}
               >
                 {/* Image */}
                 <div className="relative aspect-[4/3] overflow-hidden">

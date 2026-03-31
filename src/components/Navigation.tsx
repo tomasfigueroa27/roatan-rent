@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -63,6 +65,12 @@ const Navigation = () => {
               >
                 Contact
               </a>
+              <button
+                onClick={() => navigate('/list-property')}
+                className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                List your property
+              </button>
               <a href="#listings" className="btn-primary text-sm">
                 Browse listings
               </a>
@@ -95,10 +103,16 @@ const Navigation = () => {
                   {link.label}
                 </a>
               ))}
+              <button
+                onClick={() => { setIsMobileMenuOpen(false); navigate('/list-property'); }}
+                className="btn-primary text-center mt-4"
+              >
+                List your property
+              </button>
               <a
                 href="#contact"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="btn-primary text-center mt-4"
+                className="btn-secondary text-center"
               >
                 Contact us
               </a>

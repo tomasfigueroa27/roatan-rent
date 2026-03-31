@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import HeroSection from './sections/HeroSection';
 import ValueProps from './sections/ValueProps';
@@ -7,9 +8,9 @@ import FeaturedProperties from './sections/FeaturedProperties';
 import HowItWorks from './sections/HowItWorks';
 import ForOwners from './sections/ForOwners';
 import Footer from './sections/Footer';
+import ListPropertyPage from './pages/ListPropertyPage';
 
-function App() {
-  // Smooth scroll for anchor links
+function HomePage() {
   useEffect(() => {
     const handleAnchorClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -43,6 +44,17 @@ function App() {
         <Footer />
       </main>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/list-property" element={<ListPropertyPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

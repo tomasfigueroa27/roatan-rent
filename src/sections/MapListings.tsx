@@ -91,7 +91,9 @@ const listings = [
 ];
 
 const ROATAN_CENTER = { lat: 16.318, lng: -86.5 };
-const MAP_CONTAINER_STYLE = { width: '100%', height: '100%' };
+
+const markerIcon = (color: string) =>
+  `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28"><circle cx="14" cy="14" r="11" fill="${encodeURIComponent(color)}" stroke="white" stroke-width="2.5"/></svg>`;
 
 const areas = ['All areas', 'West End', 'West Bay', 'Sandy Bay', 'French Harbour', 'Pristine Bay'];
 const types = ['All types', 'House', 'Condo', 'Apartment', 'Commercial'];
@@ -203,7 +205,7 @@ const MapListings = () => {
             <div className="relative rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-auto lg:h-[600px] bg-[#e0f2fe]">
               {isLoaded ? (
                 <GoogleMap
-                  mapContainerStyle={MAP_CONTAINER_STYLE}
+                  mapContainerClassName="absolute inset-0 w-full h-full"
                   center={ROATAN_CENTER}
                   zoom={12}
                   onLoad={onMapLoad}
@@ -220,14 +222,7 @@ const MapListings = () => {
                       key={listing.id}
                       position={{ lat: listing.lat, lng: listing.lng }}
                       onClick={() => setSelectedListing(listing.id === selectedListing ? null : listing.id)}
-                      icon={{
-                        path: google.maps.SymbolPath.CIRCLE,
-                        scale: 10,
-                        fillColor: listing.type === 'Commercial' ? '#ef4444' : '#0ea5e9',
-                        fillOpacity: 1,
-                        strokeColor: '#ffffff',
-                        strokeWeight: 2,
-                      }}
+                      icon={markerIcon(listing.type === 'Commercial' ? '#ef4444' : '#0ea5e9')}
                     >
                       {selectedListing === listing.id && (
                         <InfoWindowF

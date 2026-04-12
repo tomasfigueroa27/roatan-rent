@@ -105,7 +105,8 @@ const MapListings = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'split' | 'list'>('split');
 
-  const { isLoaded } = useJsApiLoader({
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '',
   });
 
@@ -203,7 +204,11 @@ const MapListings = () => {
           {/* Map */}
           {viewMode === 'split' && (
             <div className="relative rounded-2xl overflow-hidden aspect-[4/3] lg:aspect-auto lg:h-[600px] bg-[#e0f2fe]">
-              {isLoaded ? (
+              {loadError ? (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm">
+                  Map unavailable
+                </div>
+              ) : isLoaded ? (
                 <GoogleMap
                   mapContainerClassName="absolute inset-0 w-full h-full"
                   center={ROATAN_CENTER}
